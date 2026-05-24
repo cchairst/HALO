@@ -1,0 +1,49 @@
+{
+  "name": "project1",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "node scripts/use-postgres-if-railway.mjs && prisma generate && next build",
+    "start": "next start -p ${PORT:-3000}",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy && prisma generate",
+    "db:push": "prisma db push --skip-generate && prisma generate",
+    "db:seed": "tsx prisma/seed.ts",
+    "deploy:db": "node scripts/use-postgres-if-railway.mjs && prisma db push --accept-data-loss --skip-generate && tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.92.0",
+    "@prisma/client": "^6.19.3",
+    "@privy-io/react-auth": "^3.22.2",
+    "@privy-io/server-auth": "^1.32.5",
+    "@tambo-ai/react": "^1.2.7",
+    "clsx": "^2.1.1",
+    "ics": "^3.8.1",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.4",
+    "openai": "^6.35.0",
+    "prisma": "^6.19.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

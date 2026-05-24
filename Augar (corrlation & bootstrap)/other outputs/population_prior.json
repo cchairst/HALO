@@ -1,0 +1,42 @@
+{
+  "model": "PopulationPrior (empirical-Bayes shrinkage)",
+  "n_relationships": 4,
+  "priors": [
+    {
+      "input": "sugar",
+      "symptom": "fatigue",
+      "lag": 0,
+      "mu": 0.40097475921605835,
+      "tau": 0.1957532430106833,
+      "n_users": 60,
+      "prevalence": 0.85
+    },
+    {
+      "input": "omega3",
+      "symptom": "mood",
+      "lag": 2,
+      "mu": -0.3163584814745518,
+      "tau": 0.12923025104121622,
+      "n_users": 60,
+      "prevalence": 0.8166666666666667
+    },
+    {
+      "input": "seed_oil",
+      "symptom": "joint_pain",
+      "lag": 2,
+      "mu": 0.2966247315513539,
+      "tau": 0.18416492759503747,
+      "n_users": 60,
+      "prevalence": 0.7833333333333333
+    },
+    {
+      "input": "turmeric",
+      "symptom": "joint_pain",
+      "lag": 4,
+      "mu": -0.24306445610269226,
+      "tau": 0.1225087568212762,
+      "n_users": 60,
+      "prevalence": 0.8333333333333334
+    }
+  ]
+}

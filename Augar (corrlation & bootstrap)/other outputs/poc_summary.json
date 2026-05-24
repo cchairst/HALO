@@ -1,0 +1,172 @@
+{
+  "single_user": {
+    "promoted_signals": [
+      "sugar raises fatigue (same day, r=+0.48, ~99% conf, n=134)",
+      "omega3 lowers mood (2d later, r=-0.37, ~99% conf, n=135)",
+      "seed_oil raises joint_pain (2d later, r=+0.33, ~99% conf, n=157)"
+    ],
+    "n_pairs_tested": 60
+  },
+  "power_curve": [
+    {
+      "days": 90,
+      "avg_true_found": 0.88,
+      "avg_false_pos": 0.38,
+      "precision": 0.7,
+      "max_true": 4
+    },
+    {
+      "days": 150,
+      "avg_true_found": 1.88,
+      "avg_false_pos": 0.25,
+      "precision": 0.882,
+      "max_true": 4
+    },
+    {
+      "days": 250,
+      "avg_true_found": 2.88,
+      "avg_false_pos": 0.0,
+      "precision": 1.0,
+      "max_true": 4
+    },
+    {
+      "days": 400,
+      "avg_true_found": 3.5,
+      "avg_false_pos": 0.25,
+      "precision": 0.933,
+      "max_true": 4
+    },
+    {
+      "days": 600,
+      "avg_true_found": 3.88,
+      "avg_false_pos": 0.12,
+      "precision": 0.969,
+      "max_true": 4
+    }
+  ],
+  "fdr_funnel": {
+    "tested": 60,
+    "after_fdr": 3,
+    "after_effect_floor": 3,
+    "promoted": 3
+  },
+  "hypothesis_loop_confirm_rate": {
+    "week_6": 0.125,
+    "week_8": 0.1,
+    "week_10": 0.25,
+    "week_12": 0.286,
+    "week_14": 0.375,
+    "week_16": 0.286,
+    "week_18": 0.375,
+    "week_20": 0.286,
+    "week_22": 0.333,
+    "week_24": 0.2
+  },
+  "population_priors": [
+    {
+      "input": "sugar",
+      "symptom": "fatigue",
+      "lag": 0,
+      "mu": 0.40097475921605835,
+      "tau": 0.1957532430106833,
+      "prevalence": 0.85,
+      "n_users": 60
+    },
+    {
+      "input": "omega3",
+      "symptom": "mood",
+      "lag": 2,
+      "mu": -0.3163584814745518,
+      "tau": 0.12923025104121622,
+      "prevalence": 0.8166666666666667,
+      "n_users": 60
+    },
+    {
+      "input": "seed_oil",
+      "symptom": "joint_pain",
+      "lag": 2,
+      "mu": 0.2966247315513539,
+      "tau": 0.18416492759503747,
+      "prevalence": 0.7833333333333333,
+      "n_users": 60
+    },
+    {
+      "input": "turmeric",
+      "symptom": "joint_pain",
+      "lag": 4,
+      "mu": -0.24306445610269226,
+      "tau": 0.1225087568212762,
+      "prevalence": 0.8333333333333334,
+      "n_users": 60
+    }
+  ],
+  "pooling_evaluation": {
+    "days": [
+      7,
+      14,
+      30,
+      60,
+      120,
+      200
+    ],
+    "engine_alone_mae": [
+      0.5745,
+      0.5745,
+      0.4936,
+      0.3802,
+      0.3271,
+      0.2829
+    ],
+    "pooled_mae": [
+      0.3251,
+      0.3251,
+      0.3387,
+      0.3292,
+      0.3116,
+      0.28
+    ],
+    "engine_coverage": [
+      0.0,
+      0.0,
+      0.9,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "pooling_headline": "At 14 days, pooling cuts new-user estimation error by 43% vs. the engine alone.",
+  "ground_truth": [
+    {
+      "input": "seed_oil",
+      "symptom": "joint_pain",
+      "direction": "aggravates",
+      "lag": 2
+    },
+    {
+      "input": "omega3",
+      "symptom": "mood",
+      "direction": "relieves",
+      "lag": 2
+    },
+    {
+      "input": "sugar",
+      "symptom": "fatigue",
+      "direction": "aggravates",
+      "lag": 0
+    },
+    {
+      "input": "turmeric",
+      "symptom": "joint_pain",
+      "direction": "relieves",
+      "lag": 4
+    }
+  ],
+  "config": {
+    "min_lag_days": 0,
+    "max_lag_days": 5,
+    "min_paired_observations": 14,
+    "min_effect_size": 0.2,
+    "fdr_alpha": 0.1,
+    "holdout_fraction": 0.3
+  }
+}

@@ -1,0 +1,4 @@
+input,symptom,direction,lag_days,effect_r,confidence,n,is_true_effect
+sugar,fatigue,aggravates,0,0.484,1.0,134,True
+omega3,mood,relieves,2,-0.366,0.998,135,True
+seed_oil,joint_pain,aggravates,2,0.328,0.997,157,True

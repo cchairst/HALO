@@ -1,0 +1,178 @@
+{
+  "patientDataTier": "blended",
+  "dataTierNote": "Early personal signal blended with population patterns.",
+  "reportDate": "2026-05-24",
+  "daysOfData": 45,
+  "foodsRecognized": [
+    "fried chicken",
+    "french fries",
+    "soda",
+    "ice cream"
+  ],
+  "foodsUnrecognized": [],
+  "keyNutrients": {
+    "omega3_g": 0.1,
+    "added_sugar_g": 65,
+    "seed_oil_load": "14/10",
+    "fiber_g": 3,
+    "processed_score": "6.8/10"
+  },
+  "currentSymptoms": {
+    "joint_pain": 7,
+    "mood": 2,
+    "fatigue": 8,
+    "cognitive_clarity": 3
+  },
+  "discussionPoints": [
+    {
+      "priority": "discuss",
+      "point": "Patient's sugar intake is elevated. Population data suggests this today's sugar intake may increase your fatigue in ~0 day(s).",
+      "evidence": "Effect size: r=0.443, seen in 90% of similar users.",
+      "lagWindow": "Expected 0-day lag before symptom change."
+    },
+    {
+      "priority": "discuss",
+      "point": "Patient's seed oil intake is elevated. Population data suggests this today's seed oil intake may increase your joint pain in ~2 day(s).",
+      "evidence": "Effect size: r=0.371, seen in 93% of similar users.",
+      "lagWindow": "Expected 2-day lag before symptom change."
+    },
+    {
+      "priority": "consider",
+      "point": "Patient has LOW intake of turmeric, which population data suggests helps reduce Joint Pain.",
+      "evidence": "Effect: r=-0.228. Consider dietary counseling or supplementation."
+    },
+    {
+      "priority": "consider",
+      "point": "Patient has LOW intake of omega3, which population data suggests helps reduce Mood (lower = worse).",
+      "evidence": "Effect: r=-0.216. Consider dietary counseling or supplementation."
+    }
+  ],
+  "medicationWarnings": [],
+  "nutritionFlags": [
+    "High added sugar today (65g). Associated with fatigue and inflammation.",
+    "High seed-oil load today (14/10). Associated with inflammatory markers.",
+    "Highly processed meals today (score 6.8/10).",
+    "Low omega-3 intake today. Consider fish or supplementation if consistent.",
+    "Low fiber today (2.5g). May affect digestion and satiety."
+  ],
+  "allergyWarnings": [
+    {
+      "type": "allergy_status",
+      "riskLevel": "none_detected",
+      "trigger": "No food or pollen allergy warning detected",
+      "message": "No allergy warning was generated from the current food log and environmental context.",
+      "recommendedAction": "Continue tracking symptoms against foods and local pollen exposure.",
+      "source": "augur_allergy_layer"
+    }
+  ],
+  "environmentalContext": {},
+  "recommendations": {
+    "tier1_lifestyle_suggestions": [
+      {
+        "priority": "high",
+        "suggestion": "Stabilize energy with earlier hydration and lower-sugar meals before mid-afternoon.",
+        "reasoning": "Added sugar is elevated today (65g), and the model links sugar load with same-day fatigue risk.",
+        "confidence": "moderate",
+        "expectedLagDays": 0
+      },
+      {
+        "priority": "moderate",
+        "suggestion": "Add a 10 to 15 minute walk after the most processed meal of the day.",
+        "reasoning": "This is a low-risk adherence nudge that can reduce post-meal energy swings without asking the user to change everything at once.",
+        "confidence": "emerging",
+        "expectedLagDays": 0
+      }
+    ],
+    "tier2_food_substitutions": [
+      {
+        "replace": "soda or sweet drinks",
+        "with": "sparkling citrus water, unsweet tea, or a gradual caffeine taper",
+        "reasoning": "Targets added sugar while preserving the beverage ritual.",
+        "confidence": "high"
+      },
+      {
+        "replace": "fried fast-food meal",
+        "with": "salmon rice bowl with vegetables",
+        "reasoning": "Raises protein, omega-3 potential, and fiber while lowering processed-score burden.",
+        "confidence": "moderate"
+      },
+      {
+        "replace": "low-fiber side dish",
+        "with": "beans, lentils, oatmeal, berries, broccoli, or avocado",
+        "reasoning": "Fiber is low today and may affect satiety, gut regularity, and energy stability.",
+        "confidence": "high"
+      }
+    ],
+    "tier3_otc_supplement_considerations": [
+      {
+        "supplement": "Omega-3 fish oil or food-first fatty fish",
+        "status": "consider",
+        "reasoning": "Omega-3 intake is low today, and the prior links omega-3 exposure with better mood-related patterns.",
+        "evidenceTier": "moderate",
+        "interactionRisk": "low",
+        "physicianDiscussionRecommended": false
+      },
+      {
+        "supplement": "Magnesium glycinate",
+        "status": "consider",
+        "reasoning": "Sleep quality or fatigue is currently flagged. This should be framed as a conservative wellness discussion, not treatment.",
+        "evidenceTier": "moderate",
+        "interactionRisk": "low_to_moderate",
+        "physicianDiscussionRecommended": false
+      },
+      {
+        "supplement": "Psyllium husk or other fiber supplement",
+        "status": "consider_food_first",
+        "reasoning": "Fiber is chronically important and today's logged intake is low. Prefer food-first options, then consider OTC fiber if adherence is hard.",
+        "evidenceTier": "strong",
+        "interactionRisk": "low",
+        "physicianDiscussionRecommended": false
+      }
+    ],
+    "tier4_physician_escalation_flags": [
+      {
+        "priority": "routine_followup",
+        "trigger": "High Fatigue score",
+        "reasoning": "Current fatigue is 8/10. If persistent, worsening, or unusual for the user, it should be discussed with a clinician.",
+        "recommendedAction": "Bring the symptom trend and food log summary to a qualified clinician."
+      },
+      {
+        "priority": "routine_followup",
+        "trigger": "Fatigue plus low mood pattern",
+        "reasoning": "The combination may deserve clinician review if it persists beyond short-term lifestyle causes.",
+        "recommendedAction": "Discuss sleep, mood, fatigue, medication, and lab-work context with a clinician."
+      }
+    ],
+    "allergy_environment_guidance": [
+      {
+        "priority": "maintain",
+        "suggestion": "Track allergy symptoms alongside meals, sleep, and pollen exposure.",
+        "reasoning": "Environmental confounders can look like food-trigger signals unless they are logged separately.",
+        "confidence": "moderate"
+      }
+    ],
+    "predictedInterventionImpact": [
+      {
+        "intervention": "Increase fiber toward 25g/day using food-first options",
+        "predictedOutcome": "Improved satiety and reduced energy volatility",
+        "estimatedEffectSize": "moderate"
+      },
+      {
+        "intervention": "Reduce added sugar and replace sweet drinks first",
+        "predictedOutcome": "Lower same-day fatigue risk and better energy stability",
+        "estimatedEffectSize": "high"
+      },
+      {
+        "intervention": "Replace fried/seed-oil-heavy meals with grilled, baked, or bowl-style meals",
+        "predictedOutcome": "Lower inflammatory meal burden and potential joint-pain risk",
+        "estimatedEffectSize": "moderate"
+      },
+      {
+        "intervention": "Add fatty fish or a clinician-reviewed omega-3 option",
+        "predictedOutcome": "Potential mood and recovery support over repeated exposure",
+        "estimatedEffectSize": "moderate"
+      }
+    ]
+  },
+  "disclaimer": "Generated by Augur (prototype). Correlational patterns, not causal claims. Intended as a discussion aid for clinical encounters, not as medical advice."
+}

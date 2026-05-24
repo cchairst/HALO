@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(npx eslint *)"
+    ]
+  }
+}

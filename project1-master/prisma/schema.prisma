@@ -1,0 +1,420 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(cuid())
+  name              String
+  role              String
+  // For role="family" only: distinguishes the patient themselves from a
+  // family member acting on the patient's behalf. Null for nurse / service
+  // accounts. Lets nurse-facing UI label "Maria (patient)" vs "Maria's
+  // daughter" without scanning the FamilyContact list.
+  // Values: "patient" | "family"
+  familyKind        String?
+  // Preferred UI locale (BCP-47-ish). Null means "fall back to en". Set on
+  // sign-up and editable later. Also mirrored to the halo_locale cookie so
+  // unauthenticated routes can read it.
+  locale            String?
+  // U.S. state of practice / residence. Stored as a 2-letter code (CA, TX,
+  // NY, etc.). Collected on sign-up because HIPAA + several state-specific
+  // privacy laws (CMIA in CA, etc.) layer on top of federal rules.
+  state             String?
+  // National Provider Identifier — 10-digit registry id issued by CMS. Only
+  // meaningful for role="caregiver"; the onboarding action verifies the NPI
+  // against the public NPPES registry and stores the result on the row.
+  npi               String?
+  npiVerified       Boolean            @default(false)
+  // Credential type pulled from NPPES (e.g. "RN", "LPN", "MD"). Stored so
+  // future role-gating can branch on licensed-credential-type rather than
+  // just the broad caregiver role.
+  npiCredential     String?
+  email             String             @unique
+  privyDid          String?            @unique
+  createdAt         DateTime           @default(now())
+  memberships       Membership[]
+  threadMembers     ThreadMember[]
+  directMessages    DirectMessage[]
+  resources         Resource[]
+  accessRequests    AccessRequest[]    @relation("RequestedBy")
+  serviceInvites    ServiceInvite[]    @relation("InvitedBy")
+  serviceOfferings  ServiceOffering[]  @relation("ProposedBy")
+  offeringDecisions ServiceOffering[]  @relation("DecidedBy")
+  chatSuggestionDecisions ChatChartSuggestion[] @relation("ChatSuggestionDecidedBy")
+  consentForms      ConsentForm[]      @relation("ConsentFormRequestedBy")
+  consentSignatures ConsentForm[]      @relation("ConsentFormSignedBy")
+  auditLogs         AuditLog[]         @relation("AuditActor")
+  assignedTasks     PatientTask[]      @relation("PatientTaskAssignedBy")
+}
+
+model CareRecipient {
+  id                String            @id @default(cuid())
+  name              String
+  age               Int
+  // Free-text pronouns — nurses record whatever the patient states.
+  pronouns          String?
+  // Weight in kilograms. Float so half-kg increments are possible.
+  weightKg          Float?
+  facility          String?
+  allergies         String?
+  room              String?
+  notes             String?
+  // Care state. Drives the status pill on the chart, hides discharged
+  // patients from family lists, and locks the chart when deceased.
+  // Values: stable | monitoring | critical | ready_for_discharge | discharged | deceased
+  status            String            @default("stable")
+  createdAt         DateTime          @default(now())
+  memberships       Membership[]
+  resources         Resource[]
+  accessRequests    AccessRequest[]
+  serviceInvites    ServiceInvite[]
+  familyContacts    FamilyContact[]
+  serviceOfferings  ServiceOffering[]
+  chatSuggestions   ChatChartSuggestion[]
+  consentForms      ConsentForm[]
+  auditLogs         AuditLog[]
+  patientTasks      PatientTask[]
+}
+
+// Immutable record of every PHI access. Required by HIPAA's audit-control
+// standard (45 CFR 164.312(b)). We log who touched what, when, and how —
+// reads as well as writes. Rows are append-only; never updated and never
+// deleted from application code.
+model AuditLog {
+  id          String         @id @default(cuid())
+  // Actor — the authenticated User whose session performed the action. Null
+  // only for system-generated rows (cron jobs, future webhooks).
+  actorId     String?
+  actor       User?          @relation("AuditActor", fields: [actorId], references: [id])
+  // Patient context, if the row is about a specific care recipient. Many
+  // events naturally pin to a patient (chart read, report posted, consent
+  // signed); account-level events (sign-up, role switch) leave it null.
+  recipientId String?
+  recipient   CareRecipient? @relation(fields: [recipientId], references: [id])
+  // What happened. Free-text-ish discriminator from src/lib/access.ts —
+  // typed in the helper, stored as a string so adding a new event kind
+  // never blocks a deploy on a schema migration.
+  action      String
+  // What was touched. Free-text label like "CareRecipient", "Resource:abc",
+  // "Thread:xyz" so an auditor can grep for one record across actions.
+  target      String?
+  // IP of the request. Best-effort: pulled from x-forwarded-for so it works
+  // behind Railway / Vercel / CloudFront. Falls back to the socket address.
+  ip          String?
+  userAgent   String?
+  // Structured metadata (e.g. previous status, new status, fields changed).
+  // Kept as JSON so we don't need a column per event kind.
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+// Structured services proposed by a Social & Protective Services agent for a
+// patient (PT, OT, social work, home health aide, etc.). Each offering
+// produces a chat broadcast to family-user members of the care team and an
+// email to the primary family contact when one exists.
+model ServiceOffering {
+  id            String        @id @default(cuid())
+  recipientId   String
+  recipient     CareRecipient @relation(fields: [recipientId], references: [id])
+  proposedById  String
+  proposedBy    User          @relation("ProposedBy", fields: [proposedById], references: [id])
+  // Free-text discriminator from src/lib/service-types.ts. Stored as a
+  // string so adding a service type doesn't need a schema migration.
+  serviceType   String
+  // Free-text frequency hint, e.g. "2x/week", "daily", "as needed".
+  frequency     String?
+  startDate     DateTime?
+  durationWeeks Int?
+  notes         String?
+  // proposed | accepted | declined | completed | withdrawn
+  status        String        @default("proposed")
+  decidedById   String?
+  decidedBy     User?         @relation("DecidedBy", fields: [decidedById], references: [id])
+  decidedAt     DateTime?
+  decisionNote  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([recipientId, createdAt])
+  @@index([proposedById])
+}
+
+// Emergency / next-of-kin records on a patient. Stored as data on the chart,
+// not as Halo accounts — the agent or nurse can email/SMS these people even
+// if they never sign up. A contact can be promoted to a Halo account via the
+// family-invite flow (ServiceInvite with role="family"), at which point the
+// matching User.email lets us also drop messages into their chat thread.
+model FamilyContact {
+  id          String        @id @default(cuid())
+  recipientId String
+  recipient   CareRecipient @relation(fields: [recipientId], references: [id])
+  name        String
+  // Free-text relation: "daughter", "spouse", "legal guardian", etc.
+  relation    String?
+  email       String?
+  // Phone reserved for future SMS notifications. Stored E.164-ish or raw.
+  phone       String?
+  // Exactly one primary per recipient is enforced by the action layer.
+  isPrimary   Boolean       @default(false)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  chatSuggestions ChatChartSuggestion[]
+
+  @@index([recipientId])
+}
+
+// Invite-only sign-up path. Originally just for the "aps" (Social &
+// Protective Services) role; the optional `role` field generalizes it so the
+// same flow now also issues family invites tied to a specific patient.
+// Tokens are single-use, email-bound, and expire after 7 days.
+model ServiceInvite {
+  id          String         @id @default(cuid())
+  // Long random token — passed in the invite link as ?invite=<token>.
+  token       String         @unique
+  // Email the invite is for. Onboarding requires the Privy session email
+  // to match (case-insensitive) before the token is consumed.
+  email       String
+  // Role the invite grants. "aps" for service agents (default to keep
+  // existing rows valid) or "family" for next-of-kin promotion.
+  role        String         @default("aps")
+  // For role="family" only: pre-locks the patient/family sub-toggle on
+  // onboarding so a "patient" invite can't be redeemed as a family member
+  // by mistake. Null means the invitee picks themselves at sign-up.
+  familyKind  String?
+  // Optional context the inviter writes — what the agent is being invited
+  // to help with (e.g. "Post-op PT for Edmond").
+  note        String?
+  invitedById String
+  invitedBy   User           @relation("InvitedBy", fields: [invitedById], references: [id])
+  recipientId String?
+  recipient   CareRecipient? @relation(fields: [recipientId], references: [id])
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([invitedById])
+  @@index([recipientId])
+  @@index([email])
+}
+
+model Membership {
+  id          String        @id @default(cuid())
+  userId      String
+  recipientId String
+  user        User          @relation(fields: [userId], references: [id])
+  recipient   CareRecipient @relation(fields: [recipientId], references: [id])
+  createdAt   DateTime      @default(now())
+
+  @@unique([userId, recipientId])
+  @@index([userId])
+  @@index([recipientId])
+}
+
+model Thread {
+  id            String          @id @default(cuid())
+  directKey     String?         @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lastMessageAt DateTime?
+  members       ThreadMember[]
+  messages      DirectMessage[]
+
+  @@index([updatedAt])
+  @@index([lastMessageAt])
+}
+
+model ThreadMember {
+  id         String    @id @default(cuid())
+  threadId   String
+  userId     String
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+  thread     Thread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([userId])
+  @@index([threadId])
+}
+
+model DirectMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+  chatSuggestions ChatChartSuggestion[]
+
+  @@index([threadId, createdAt])
+  @@index([authorId])
+}
+
+// Chat → chart suggestions. When a message is sent, an extractor pass over
+// the body (small LLM call) proposes structured updates to the patient's
+// chart (e.g. "Availability: today at 3am"). These are NEVER auto-applied;
+// they surface as one-tap chips on the thread for the nurse to accept or
+// dismiss. Accepted suggestions append the value to the chosen target field
+// and the source message is recorded as the provenance.
+model ChatChartSuggestion {
+  id              String         @id @default(cuid())
+  messageId       String
+  message         DirectMessage  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  recipientId     String
+  recipient       CareRecipient  @relation(fields: [recipientId], references: [id])
+  // Where the suggestion would land if accepted.
+  //   "patient_notes" — append to CareRecipient.notes
+  //   "family_contact_notes" — append to FamilyContact.notes (familyContactId set)
+  target          String
+  familyContactId String?
+  familyContact   FamilyContact? @relation(fields: [familyContactId], references: [id])
+  // Human-readable label of the chart field, e.g. "Availability".
+  field           String
+  // Extracted value, kept short — verbatim where possible so the nurse sees
+  // exactly what was inferred.
+  value           String
+  // pending | accepted | dismissed
+  status          String         @default("pending")
+  decidedById     String?
+  decidedBy       User?          @relation("ChatSuggestionDecidedBy", fields: [decidedById], references: [id])
+  decidedAt       DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([recipientId, status])
+  @@index([messageId])
+}
+
+model Resource {
+  id             String          @id @default(cuid())
+  recipientId    String
+  authorId       String
+  title          String
+  body           String
+  confidential   Boolean         @default(false)
+  type           String          @default("note")
+  priority       String          @default("low")
+  resolvedAt     DateTime?
+  createdAt      DateTime        @default(now())
+  recipient      CareRecipient   @relation(fields: [recipientId], references: [id])
+  author         User            @relation(fields: [authorId], references: [id])
+  accessRequests AccessRequest[]
+
+  @@index([recipientId, createdAt])
+  @@index([recipientId, priority, resolvedAt])
+  @@index([type, createdAt])
+  @@index([authorId])
+}
+
+// HIPAA-style consent / release form. Lives inside a chat thread between a
+// caregiver and a patient/family member. Either side can initiate:
+//   - Nurse sends a form to the patient to sign (intake consent, treatment
+//     consent, photo/recording consent).
+//   - Patient requests a form from the nurse (records release authorization,
+//     revocation of prior release). The nurse fills it out, then the patient
+//     signs it.
+// Once signed it is immutable. A signed copy is the legal record; revocation
+// is a separate row, not an update.
+model ConsentForm {
+  id            String         @id @default(cuid())
+  threadId      String
+  // Patient the form is about. Required for clinical forms; may be null for
+  // an account-level general release a user is signing for themselves.
+  recipientId   String?
+  recipient     CareRecipient? @relation(fields: [recipientId], references: [id])
+  // The user who initiated the form (sent it OR requested it).
+  requestedById String
+  requestedBy   User           @relation("ConsentFormRequestedBy", fields: [requestedById], references: [id])
+  // The user who must sign (or who has signed, once signed). Always a real
+  // Halo account — patient self-signs, family proxy signs on behalf of the
+  // patient, etc.
+  signerId      String
+  signer        User           @relation("ConsentFormSignedBy", fields: [signerId], references: [id])
+  // Discriminator from src/lib/consent-forms.ts.
+  formType      String
+  title         String
+  // Markdown body of the form text being agreed to. Locked in at creation
+  // so the legal record never drifts if the template is later updated.
+  body          String
+  // U.S. state at the moment of signing. Captured because consent law
+  // varies state-by-state and the signed record must reflect the state
+  // the signer's session declared at the time.
+  state         String?
+  // Lifecycle: pending → signed | declined | revoked
+  status        String         @default("pending")
+  signedAt      DateTime?
+  // Typed-name signature. ESIGN-/UETA-compliant when combined with the
+  // checkbox affirmation, the IP, the user-agent, and the audit-log entry.
+  signedName    String?
+  signedIp      String?
+  signedUserAgent String?
+  decisionNote  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([threadId, createdAt])
+  @@index([recipientId, status])
+  @@index([signerId, status])
+}
+
+model AccessRequest {
+  id            String        @id @default(cuid())
+  resourceId    String
+  recipientId   String
+  requestedById String
+  reason        String
+  status        String        @default("pending")
+  createdAt     DateTime      @default(now())
+  decidedAt     DateTime?
+  resource      Resource      @relation(fields: [resourceId], references: [id])
+  recipient     CareRecipient @relation(fields: [recipientId], references: [id])
+  requestedBy   User          @relation("RequestedBy", fields: [requestedById], references: [id])
+
+  @@index([resourceId])
+  @@index([recipientId])
+  @@index([requestedById, status])
+}
+
+// Doctor-assigned homework / micro-tasks for a patient (record walking video,
+// pain check, photo of incision, etc.). Posted from the desktop patient chart
+// and consumed by the patient's mobile Today screen. On submit, the patient
+// records pain score / note / photo url, which writes back here for the doctor
+// to review on the next chart view.
+model PatientTask {
+  id            String        @id @default(cuid())
+  recipientId   String
+  recipient     CareRecipient @relation(fields: [recipientId], references: [id])
+  assignedById  String
+  assignedBy    User          @relation("PatientTaskAssignedBy", fields: [assignedById], references: [id])
+  title         String
+  subtitle      String?
+  // walk | incision | meds | pain | other — drives the icon + tone on the
+  // patient Today card. Free-text so adding a new kind doesn't need a
+  // migration.
+  kind          String        @default("other")
+  // The chat thread the assignment was broadcast into, plus the message row
+  // itself. Lets the patient jump back to the thread from the Today card,
+  // and the doctor see provenance.
+  threadId      String?
+  messageId     String?
+  createdAt     DateTime      @default(now())
+  completedAt   DateTime?
+  // Patient-submitted answers. All optional — the form on /check-in only
+  // requires what's relevant for the task.
+  painScore     Int?
+  note          String?
+  photoUrl      String?
+
+  @@index([recipientId, completedAt])
+  @@index([assignedById])
+}

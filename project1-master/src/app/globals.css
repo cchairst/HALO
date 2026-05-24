@@ -1,0 +1,513 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --background: #f6f2ea;
+  --surface: #fffdf8;
+  --surface-2: #eee8dc;
+  --surface-3: #e4dac8;
+  --border: rgba(37, 31, 22, 0.11);
+  --border-strong: rgba(37, 31, 22, 0.2);
+  --ink: #171410;
+  --ink-2: #332d23;
+  --muted: #746c5f;
+  --muted-2: #a09686;
+  --gold: #bd8b25;
+  --gold-soft: #8f6819;
+  --gold-deep: #7c5a17;
+  --gold-bg: rgba(189, 139, 37, 0.12);
+
+  --bubble-mine-bg: #ead8ac;
+  --bubble-mine-fg: #171410;
+  --bubble-other-bg: #ffffff;
+  --bubble-other-fg: #171410;
+
+  --accent: #171410;
+  --accent-fg: #fffdf8;
+  --accent-hover: #2c261c;
+
+  --bg-grad: #f6f2ea;
+
+  --glass-bg: rgba(255, 253, 248, 0.96);
+  --glass-bg-strong: rgba(255, 253, 248, 0.98);
+  --glass-bg-flat: rgba(255, 253, 248, 0.9);
+
+  --foreground: var(--ink);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #000000;
+  --surface: #101010;
+  --surface-2: #171717;
+  --surface-3: #222222;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --ink: #f7f2e8;
+  --ink-2: #d8d1c4;
+  --muted: #8f8a80;
+  --muted-2: #5f5a52;
+  --gold: #c99a32;
+  --gold-soft: #d9b257;
+  --gold-deep: #b98722;
+  --gold-bg: rgba(201, 154, 50, 0.14);
+
+  --bubble-mine-bg: #2a2317;
+  --bubble-mine-fg: #f7f2e8;
+  --bubble-other-bg: #1c1c1e;
+  --bubble-other-fg: #f7f2e8;
+
+  --accent: #d5aa4a;
+  --accent-fg: #111111;
+  --accent-hover: #e0b957;
+
+  --bg-grad: #050505;
+
+  --glass-bg: rgba(16, 16, 16, 0.96);
+  --glass-bg-strong: rgba(18, 18, 18, 0.98);
+  --glass-bg-flat: rgba(16, 16, 16, 0.9);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-deep: var(--gold-deep);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", "Cascadia Mono", monospace;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  background: var(--bg-grad);
+  background-attachment: fixed;
+  min-height: 100vh;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  transition: color 0.15s ease, background 0.2s ease;
+}
+
+body::before {
+  display: none;
+}
+
+[data-theme="dark"] body::before {
+  display: none;
+}
+
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--border);
+}
+
+@utility glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--border-strong);
+}
+
+@utility glass-flat {
+  background: var(--glass-bg-flat);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--border);
+}
+
+@utility hairline {
+  border: 1px solid var(--border);
+}
+
+@utility gold-text {
+  background: none;
+  color: var(--gold-deep);
+}
+
+@utility gold-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+button, a[role="button"], [role="button"] {
+  min-height: 36px;
+}
+
+/* Tailwind v4 dropped the default `cursor: pointer` on buttons. Restore it
+   so interactive controls feel clickable on hover, while keeping the native
+   disabled cursor for disabled buttons. */
+button:not(:disabled), a[role="button"], [role="button"] {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+input, textarea, select {
+  min-height: 38px;
+  font-size: 0.95rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  display: inline-block;
+}
+
+.mobile-chat-shell {
+  --mobile-gold: var(--gold);
+  --mobile-gold-soft: var(--gold-soft);
+  --mobile-gold-deep: var(--gold-deep);
+  --mobile-cream: var(--background);
+  --mobile-ink: var(--ink);
+  --mobile-muted: var(--muted);
+  --mobile-line: var(--border);
+  --mobile-bubble-mine: #2a2317;
+  --mobile-bubble-mine-fg: var(--bubble-mine-fg);
+  position: relative;
+  color: var(--mobile-ink);
+  background: var(--mobile-cream);
+}
+
+.mobile-chat-shell::before,
+.mobile-chat-shell::after {
+  display: none;
+}
+
+.mobile-chat-shell::before {
+  width: 320px;
+  height: 120px;
+  left: -110px;
+  bottom: 120px;
+}
+
+.mobile-chat-shell::after {
+  width: 280px;
+  height: 110px;
+  right: -90px;
+  top: 92px;
+}
+
+[data-theme="dark"] .mobile-chat-shell {
+  --mobile-bubble-mine: #2a2317;
+  --mobile-bubble-mine-fg: var(--ink);
+  background: var(--background);
+}
+
+.mobile-need-scroll {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-need-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-chat-enter {
+  animation: mobile-chat-rise 0.26s ease both;
+}
+
+@keyframes mobile-chat-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Legacy mobile shell — kept for the older nurse/care-team screens that
+   still hardcode a near-black background inline. The new patient mobile
+   experience uses .patient-mobile (below) and respects theme tokens. */
+@media (max-width: 767px) {
+  .mobile-app-shell {
+    min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Patient mobile palette
+   The mobile app is a patient-only recovery companion. It has its own scoped
+   token set so it can stay calm + premium without affecting the desktop
+   clinical UI. Light mode = warm cream; dark mode = true black/charcoal.
+   Green is the only saturated accent (CTA, progress, positive states).
+   Gold is reserved for the Halo logo + a few small premium accents.
+--------------------------------------------------------------------------- */
+.patient-mobile {
+  --p-bg: #faf3e6;
+  --p-bg-soft: #f4ecdc;
+  --p-surface: #ffffff;
+  --p-surface-2: #f7f1e4;
+  --p-surface-3: #ece4d3;
+  --p-border: rgba(15, 26, 20, 0.08);
+  --p-border-strong: rgba(15, 26, 20, 0.16);
+  --p-ink: #0f1a14;
+  --p-ink-2: #2c352d;
+  --p-muted: #6b746c;
+  --p-muted-2: #98a09a;
+
+  --p-green: #1f6b3b;
+  --p-green-strong: #14582e;
+  --p-green-soft: #2f8a4c;
+  --p-green-bright: #2fa15b;
+  --p-green-bg: rgba(31, 107, 59, 0.10);
+  --p-green-bg-2: rgba(31, 107, 59, 0.16);
+  --p-green-ring: rgba(31, 107, 59, 0.20);
+  --p-on-green: #ffffff;
+
+  --p-gold: #d4a847;
+  --p-gold-soft: #e8c878;
+  --p-warn: #d09a3a;
+  --p-warn-bg: rgba(208, 154, 58, 0.14);
+
+  --p-purple: #8e6dd9;
+  --p-purple-bg: rgba(142, 109, 217, 0.12);
+  --p-blue: #4a8cf2;
+  --p-blue-bg: rgba(74, 140, 242, 0.12);
+  --p-red: #d96363;
+  --p-red-bg: rgba(217, 99, 99, 0.14);
+  --p-orange: #d68b3d;
+  --p-orange-bg: rgba(214, 139, 61, 0.14);
+
+  background: var(--p-bg);
+  color: var(--p-ink);
+}
+
+[data-theme="dark"] .patient-mobile {
+  --p-bg: #000000;
+  --p-bg-soft: #08090a;
+  --p-surface: #101114;
+  --p-surface-2: #17181c;
+  --p-surface-3: #1f2126;
+  --p-border: rgba(255, 255, 255, 0.07);
+  --p-border-strong: rgba(255, 255, 255, 0.14);
+  --p-ink: #f6f3eb;
+  --p-ink-2: #d4d0c4;
+  --p-muted: #8f8a80;
+  --p-muted-2: #61605a;
+
+  --p-green: #2a8949;
+  --p-green-strong: #1f6b3b;
+  --p-green-soft: #45a36b;
+  --p-green-bright: #4ade80;
+  --p-green-bg: rgba(74, 222, 128, 0.10);
+  --p-green-bg-2: rgba(74, 222, 128, 0.16);
+  --p-green-ring: rgba(74, 222, 128, 0.22);
+  --p-on-green: #ffffff;
+
+  --p-gold: #d4a847;
+  --p-gold-soft: #e8c878;
+  --p-warn: #e0a955;
+  --p-warn-bg: rgba(224, 169, 85, 0.14);
+
+  --p-purple: #a884db;
+  --p-purple-bg: rgba(168, 132, 219, 0.14);
+  --p-blue: #6ba6f7;
+  --p-blue-bg: rgba(107, 166, 247, 0.14);
+  --p-red: #ef7575;
+  --p-red-bg: rgba(239, 117, 117, 0.16);
+  --p-orange: #e09b55;
+  --p-orange-bg: rgba(224, 155, 85, 0.14);
+
+  background: var(--p-bg);
+  color: var(--p-ink);
+}
+
+.patient-card {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: 20px;
+}
+
+.patient-card-flat {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+}
+
+.patient-cta {
+  background: var(--p-green-strong);
+  color: var(--p-on-green);
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background 140ms ease, transform 120ms ease;
+}
+.patient-cta:active { transform: scale(0.985); }
+.patient-cta:hover { background: var(--p-green); }
+
+.patient-chip {
+  background: var(--p-green-bg);
+  color: var(--p-green-soft);
+  border: 1px solid var(--p-green-ring);
+  border-radius: 999px;
+}
+
+.patient-fade-in {
+  animation: patient-fade-in 360ms ease both;
+}
+@keyframes patient-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* AI chat type indicator — 3 muted dots that pulse in sequence. */
+.ai-typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--p-muted);
+  animation: ai-typing-bounce 1s infinite ease-in-out;
+}
+@keyframes ai-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* Drawer input styling — flat dark fills, hierarchy via opacity */
+.halo-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #fff;
+  width: 100%;
+  outline: none;
+  letter-spacing: -0.005em;
+  transition: background 140ms, border-color 140ms;
+  -webkit-appearance: none;
+}
+.halo-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+.halo-input:focus {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+textarea.halo-input { line-height: 1.45; }
+select.halo-input {
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.5) 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.5) 50%, transparent 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 12px) center;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+
+/* Wizard drawer — mobile bottom sheet, desktop floating centered modal.
+   Switches behavior at the md breakpoint. */
+.halo-wizard-drawer {
+  position: fixed;
+  z-index: 50;
+  background: #050506;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px 28px 0 0;
+  overflow: hidden;
+
+  /* Mobile defaults: slide up from bottom */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 84dvh;
+  transform: translateY(calc(100% + var(--halo-drag-y, 0px)));
+  opacity: 1;
+  /* When closed, do not intercept clicks. Without this the desktop
+     closed-state (opacity:0 but still 420px centered in the viewport)
+     would steal clicks from form fields underneath it. */
+  pointer-events: none;
+  transition:
+    transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 200ms ease-out,
+    height 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, height, opacity;
+}
+.halo-wizard-drawer[data-open="true"] {
+  transform: translateY(var(--halo-drag-y, 0px));
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .halo-wizard-drawer {
+    /* Desktop: centered floating modal */
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: 420px;
+    max-width: 420px;
+    max-height: 80dvh;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    box-shadow:
+      0 24px 60px -16px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+
+    /* Closed: hovers slightly above center, faded out */
+    transform: translate(-50%, -46%);
+    opacity: 0;
+  }
+  .halo-wizard-drawer[data-open="true"] {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+.halo-wizard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms ease-out;
+}
+.halo-wizard-backdrop[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (min-width: 768px) {
+  .halo-wizard-backdrop[data-open="true"] {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(2px);
+  }
+}
